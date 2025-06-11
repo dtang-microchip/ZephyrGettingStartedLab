@@ -1,0 +1,7 @@
+bootloader/
+modules/
+tools/
+.venv/
+.west/
+zephyr/
+build/
