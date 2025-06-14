@@ -1,0 +1,32 @@
+/
+{
+	aliases {
+	};
+};
+
+&gmac {
+    status = "disabled";
+};
+
+&sercom4 {
+     compatible = "atmel,sam0-spi";
+     dipo = <3>;
+     dopo = <0>;
+     #address-cells = <1>;
+     #size-cells = <0>;
+     cs-gpios = <&portb 28 GPIO_ACTIVE_LOW>;
+     pinctrl-0 = <&sercom4_spi_default>;
+     pinctrl-names = "default";
+     status = "okay";
+
+     sercom4_cs0_winc1500: WINC1500@0 {
+          compatible = "atmel,winc1500";
+          reg = <0>;
+          spi-max-frequency = <12000000>;
+          irq-gpios = <&portb 7 GPIO_ACTIVE_LOW>;
+          reset-gpios = <&porta 6 GPIO_ACTIVE_LOW>;
+          enable-gpios = <&porta 7 GPIO_ACTIVE_HIGH>,
+                         <&porta 27 GPIO_ACTIVE_HIGH>;
+          status = "okay";
+     };
+};
