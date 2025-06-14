@@ -7,9 +7,19 @@
 #include <stdio.h>
 #include <zephyr/kernel.h>
 #include <zephyr/drivers/gpio.h>
+#include "producer.h" 
+#include "consumer.h"
 
-/* 1000 msec = 1 sec */
-#define SLEEP_TIME_MS   1000
+/* 
+ * Zephyr Thread defines 
+*/ 
+#define STACKSIZE 256 
+#define PRIORITY 7 
+K_THREAD_STACK_DEFINE(producerThreadstack_area, STACKSIZE); 
+struct k_thread producerThread_data;
+K_THREAD_STACK_DEFINE(consumerThreadstack_area, STACKSIZE); 
+struct k_thread consumerThread_data; 
+
 
 /* The devicetree node identifier for the "led0" alias. */
 #define LED0_NODE DT_ALIAS(led0)
@@ -20,10 +30,12 @@
  */
 static const struct gpio_dt_spec led = GPIO_DT_SPEC_GET(LED0_NODE, gpios);
 
+struct k_msgq consumerQueue; 
+char taskCommsBuffer[4 * sizeof(uint32_t)];
+
 int main(void)
 {
 	int ret;
-	bool led_state = true;
 
 	if (!gpio_is_ready_dt(&led)) {
 		return 0;
@@ -34,15 +46,27 @@ int main(void)
 		return 0;
 	}
 
-	while (1) {
-		ret = gpio_pin_toggle_dt(&led);
-		if (ret < 0) {
-			return 0;
-		}
+	k_msgq_init(&consumerQueue, taskCommsBuffer, sizeof(uint32_t), 4); 
 
-		led_state = !led_state;
-		printf("LED state: %s\n", led_state ? "ON" : "OFF");
-		k_msleep(SLEEP_TIME_MS);
+	k_tid_t producer_tid = k_thread_create(&producerThread_data, 
+							producerThreadstack_area,  
+							K_THREAD_STACK_SIZEOF(producerThreadstack_area), 
+							producerThread, 
+							(void*)&led, (void*)&consumerQueue, (void*)NULL, 
+							PRIORITY, 0, K_NO_WAIT);
+
+	k_tid_t consumer_tid = k_thread_create(&consumerThread_data, 
+							consumerThreadstack_area, 
+							K_THREAD_STACK_SIZEOF(consumerThreadstack_area), 
+							consumerThread, 
+							(void*)&consumerQueue, (void*)NULL, (void*)NULL, 
+							PRIORITY, 0, K_NO_WAIT);
+
+k_thread_name_set(producer_tid, (const char *)"producerABBB"); 
+k_thread_name_set(consumer_tid, (const char *)"consumer"); 
+
+	while (1) {
+		k_msleep(1);
 	}
 	return 0;
 }
