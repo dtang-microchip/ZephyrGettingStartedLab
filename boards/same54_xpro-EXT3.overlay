@@ -1,0 +1,42 @@
+/
+{
+	aliases {
+	};
+};
+
+&gmac {
+    status = "disabled";
+};
+
+&pinctrl {
+     sercom6_spi_overlay: sercom6_spi_overlay {
+		group1 {
+			pinmux = <PC5C_SERCOM6_PAD1>,
+				 <PC4C_SERCOM6_PAD0>,
+				 <PC7C_SERCOM6_PAD3>;
+		};
+	};
+};
+
+&sercom6 {
+     compatible = "atmel,sam0-spi";
+     dipo = <3>;
+     dopo = <0>;
+     #address-cells = <1>;
+     #size-cells = <0>;
+     cs-gpios = <&portc 14 GPIO_ACTIVE_LOW>;
+     pinctrl-0 = <&sercom6_spi_overlay>;
+     pinctrl-names = "default";
+     status = "okay";
+
+     sercom7_cs0_winc1500: WINC1500@0 {
+          compatible = "atmel,winc1500";
+          reg = <0>;
+          spi-max-frequency = <12000000>;
+          irq-gpios = <&portc 30 GPIO_ACTIVE_LOW>;
+          reset-gpios = <&portc 1 GPIO_ACTIVE_LOW>;
+          enable-gpios = <&portc 10 GPIO_ACTIVE_HIGH>,
+                         <&portc 31 GPIO_ACTIVE_HIGH>;
+          status = "okay";
+     };
+};

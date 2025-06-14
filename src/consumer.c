@@ -7,6 +7,6 @@ void consumerThread(void* inMsgQueue, void*, void*){
  while (1) { 
         struct k_msgq *notifyMsgQueue = (struct k_msgq*)inMsgQueue;
         k_msgq_get(notifyMsgQueue, &data, K_FOREVER);
-        printf("Consumer Thread: %d\n", data);
+        //printf("Consumer Thread: %d\n", data);
     } 
 }
